@@ -319,29 +319,75 @@ def random(vx, nn):
 # MAIN LOOP
 #############
 
-memory[PC] = 12
-memory[PC+1] = 34
+from sys import exit
+import pygame
+from pygame.locals import *
 
-while True:
-    # Do timing
-    time.sleep(TICK_RATE)
-    decrementTimer()
-    os.system('clear') # Clear terminal to make it easier to watch
+if __name__ == '__main__':
+    pygame.init()
+
+    size = screen_width, screen_height = 600, 400
+    screen = pygame.display.set_mode(size)
+    clock = pygame.time.Clock()
+
+    # def game_loop():
+    fps_cap = 120
+    running = True
+    while running:
+        clock.tick(fps_cap)
+
+        for event in pygame.event.get():    # error is here
+            if event.type == pygame.QUIT:
+                running = False
+
+        keys = pygame.key.get_pressed()
+        values = {
+            'q': keys[K_q],
+            'w': keys[K_w],
+            'e': keys[K_e],
+            'r': keys[K_r],
+            'a': keys[K_a],
+            's': keys[K_s],
+            'd': keys[K_d],
+            'f': keys[K_f],
+            'z': keys[K_z],
+            'x': keys[K_x],
+            'c': keys[K_c],
+            'v': keys[K_v],
+            '1': keys[K_1],
+            '2': keys[K_2],
+            '3': keys[K_3],
+            '4': keys[K_4],
+        }
+        print(values)
+
+        # Pygame display stuff
+        screen.fill((255, 255, 255))
+        pygame.display.flip()
+
+        # General code
+        time.sleep(TICK_RATE)
+        decrementTimer()
+        os.system('clear')
+
+        clearDisplay()
+        # setReg(0, 0) # x reg is 0
+        # setReg(1, 0) # y reg is 1
+        setReg(0, (displayWidth-TIMER-8)%displayWidth) # x reg is 0
+        setReg(1, (TIMER-5)%displayHeight) # y reg is 1
+        # setReg(0, randint(0, displayWidth-1)) # x reg is 0
+        # setReg(1, randint(0, displayHeight-1)) # y reg is 1
+        # setReg(0, 62) # x reg is 0
+        # setReg(1, 0) # y reg is 1
+
+        setIndex(fontStart+50)
+        display(0, 1, 5)
+        # printMemory(display=True)
+        displayShow()
 
 
-    clearDisplay()
-    # setReg(0, 0) # x reg is 0
-    # setReg(1, 0) # y reg is 1
-    setReg(0, (displayWidth-TIMER-8)%displayWidth) # x reg is 0
-    setReg(1, (TIMER-5)%displayHeight) # y reg is 1
-    # setReg(0, randint(0, displayWidth-1)) # x reg is 0
-    # setReg(1, randint(0, displayHeight-1)) # y reg is 1
-    # setReg(0, 62) # x reg is 0
-    # setReg(1, 0) # y reg is 1
+    pygame.quit()
+    exit()
 
-    setIndex(fontStart+50)
-    display(0, 1, 5)
-    # printMemory(display=True)
-    displayShow()
-
-    # quit()
+    # game_loop()
+    #!/usr/bin/env python
