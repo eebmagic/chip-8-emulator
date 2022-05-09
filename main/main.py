@@ -64,16 +64,21 @@ memory[displayStart:displayEnd+2] = [0x00] * displayLength
 #############
 
 
-def printMemory(display=False):
+def printMemory(display=False, start=0, limit=4096+1, condensed=False):
     '''
     HELPER METHOD
     '''
+    start = start // 8
     if not display:
-        for i in range(len(memory) // 8):
-            # a = f'{i*8}..{(i+1)*8-1}' 
-            a = f'{hex(i*8)}..{hex((i+1)*8-1)}' 
+        for i in range(min(limit, len(memory)) // 8):
+            first = (start+i)*8
+            second = (start+i+1)*8-1
+            a = f'{hex(first)}..{hex(second)}' 
             b = f' ' * (12-len(a))
-            print(f'{b}{a} : {[hex(x) for x in memory[i*8:(i+1)*8]]}')
+            if condensed:
+                print(f'{b}{a} : {"".join([hex(x) for x in memory[first:second+1]]).replace("0x", "")}')
+            else:
+                print(f'{b}{a} : {[hex(x) for x in memory[first:second+1]]}')
     else:
         for i in range(displayHeight):
             a = f'{hex(displayStart+(i*8))}..{hex(displayStart+((i+1)*8)*(8-1))}'
@@ -319,27 +324,51 @@ def random(vx, nn):
 # MAIN LOOP
 #############
 
-from sys import exit
+from sys import exit, argv
 import pygame
 from pygame.locals import *
 
 if __name__ == '__main__':
+    # Check for file to load
+    args = list(filter(lambda item: item.endswith('.ch8'), argv))
+    if len(args) > 0:
+        sourceFile = args[0]
+
+        # Place in memory
+        with open(sourceFile, 'rb', buffering=4) as file:
+            sourceContent = file.read().strip()
+            evens = [byte for i, byte in enumerate(sourceContent) if i % 2 == 0 ]
+            odds = [byte for i, byte in enumerate(sourceContent) if i % 2 == 1 ]
+            joined = list(sum(zip(odds, evens+[0]), ())[:-1])
+
+            if VERBOSE:
+                print(f'Loaded program from {sourceFile}')
+
+        for i, byte in enumerate(joined):
+            memory[512+i] = byte
+
+        if VERBOSE:
+            print('Finished writing to memory')
+    else:
+        sourceFile = None
+
+    # Setup pygame parts
     pygame.init()
 
     size = screen_width, screen_height = 600, 400
     screen = pygame.display.set_mode(size)
     clock = pygame.time.Clock()
-
-    # def game_loop():
     fps_cap = 120
     running = True
+
+    # Main loop
     while running:
         clock.tick(fps_cap)
 
+        # Get keyboard inputs
         for event in pygame.event.get():    # error is here
             if event.type == pygame.QUIT:
                 running = False
-
         keys = pygame.key.get_pressed()
         values = {
             'q': keys[K_q],
