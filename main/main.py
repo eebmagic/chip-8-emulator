@@ -13,7 +13,8 @@ PC = 512
 I = 512
 
 # Set timer
-TIMER = (2 ** 8) - 1
+TIMER = (2**8) - 1
+SOUND_TIMER = (2**8) - 1
 TICK_RATE = 1/60
 # TICK_RATE = 1/10
 # TICK_RATE = 1/6000
@@ -124,11 +125,16 @@ def displayShow():
 
 def decrementTimer():
     # TODO Do something aobut this one
-    global TIMER
+    global TIMER, SOUND_TIMER
     if TIMER > 0:
         TIMER -= 1
     else:
-        TIMER = (2 ** 8) - 1
+        TIMER = (2**8) - 1
+
+    if SOUND_TIMER > 0:
+        SOUND_TIMER -= 1
+    else:
+        SOUND_TIMER = (2**8) - 1
 
 def fetch():
     # TODO Do something about this one
@@ -139,10 +145,12 @@ def fetch():
     # print(PC, value)
     # nibleA, nibleB = hex(A)[2:]
     # nibleC, nibleD = hex(B)[2:]
-    nibles = [int(nib, 16) for nib in (hex(A)[2:] + hex(B)[2:])]
+    # nibles = [int(nib, 16) for nib in (hex(A)[2:] + hex(B)[2:])]
+    nibles = [int(nib, 16) for nib in ("{:02x}".format(A) + "{:02x}".format(B))]
     niblesHex = [hex(nib)[-1] for nib in nibles]
     # print(PC, nibleA, nibleB, nibleC, nibleD)
-    print('fetch: ', PC, '0x'+''.join(niblesHex), nibles)
+    print('\nfetch: ', PC, '0x'+''.join(niblesHex), nibles)
+    print(f'\tWorking with niblesHex: {niblesHex}')
 
     if value == '0x00e0':
         clearDisplay()
@@ -261,8 +269,7 @@ def fetch():
         dumpRegs(vx)
     elif niblesHex[0] == 'f' and niblesHex[2] == '6' and niblesHex[3] == '5':
         vx = nibles[1]
-        loadReg(vx)
-
+        loadRegs(vx)
 
     PC += 2
 
@@ -710,13 +717,12 @@ def setSoundTimer(vx):
     Set the sound timer to value in Vx.
     '''
     assert vx > 0 and vx < 16, f'vx is {vx} and should be 0..15'
-    ### TODO: Create a sound timer?
-    # global registers, TIMER, VERBOSE
+    global registers, SOUND_TIMER, VERBOSE
 
-    # if VERBOSE:
-    #     print(f'setTimer: changing timer from {TIMER}, to value in reg {vx}: {registers[vx]}')
+    if VERBOSE:
+        print(f'setSoundTimer: changing sound timer from {SOUND_TIMER}, to value in reg {vx}: {registers[vx]}')
 
-    # TIMER = registers[vx]
+    SOUND_TIMER = registers[vx]
 
 def addRegToI(vx):
     '''
@@ -818,7 +824,8 @@ if __name__ == '__main__':
             sourceContent = file.read().strip()
             evens = [byte for i, byte in enumerate(sourceContent) if i % 2 == 0 ]
             odds = [byte for i, byte in enumerate(sourceContent) if i % 2 == 1 ]
-            joined = list(sum(zip(odds, evens+[0]), ())[:-1])
+            # joined = list(sum(zip(odds, evens+[0]), ())[:-1])
+            joined = sourceContent
 
             if VERBOSE:
                 print(f'Loaded program from {sourceFile}')
@@ -877,17 +884,20 @@ if __name__ == '__main__':
         # Manage timer
         time.sleep(TICK_RATE)
         decrementTimer()
-        # os.system('clear')
+        os.system('clear')
 
 
         # General code
         fetch()
-        if TIMER < 230:
-            quit()
+        # if TIMER < 230:
+        #     print('QUITTING from arbitrary timer limit')
+        #     quit()
+
+
 
         # clearDisplay()
-        # # loadReg(0, 0) # x reg is 0
-        # # loadReg(1, 0) # y reg is 1
+        # loadReg(0, 0) # x reg is 0
+        # loadReg(1, 0) # y reg is 1
         # loadReg(0, (displayWidth-TIMER-8)%displayWidth) # x reg is 0
         # loadReg(1, (TIMER-5)%displayHeight) # y reg is 1
         # # loadReg(0, randint(0, displayWidth-1)) # x reg is 0
