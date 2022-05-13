@@ -114,14 +114,38 @@ def displayShow():
     Print screen out.
     '''
     global memory
-    empty, full = ' ', '█'
-    print('-'*(64+2))
+
+    ## Build data array
+    data = []
     for y in range(displayHeight):
         row = memory[displayStart+(displayWidth*y//8):displayStart+(displayWidth*(y+1)//8)]
         bits = ''.join(["{:08b}".format(x) for x in row])
-        displayRow = bits.replace('0', ' ').replace('1', '█')
-        print(f'|{displayRow}|')
-    print('-'*(64+2))
+        dataRow = [c == '1' for c in bits]
+        data.append(dataRow)
+
+    ## Display through PyGame
+    blockWidth = screen_width // 64
+    blockHeight = screen_height // 32
+    WHITE = (255, 255, 255)
+    BLACK = (0, 0, 0)
+
+    ## Draw gridlines
+    screen.fill(BLACK)
+    for x in range(0, screen_width, blockWidth):
+        for y in range(0, screen_height, blockHeight):
+            rect = pygame.Rect(x, y, blockWidth, blockHeight)
+            pygame.draw.rect(screen, BLACK, rect, 1)
+
+    xInd, yInd = 0, 0
+    for x in range(0, screen_width, blockWidth):
+        for y in range(0, screen_height, blockHeight):
+            rect = pygame.Rect(x, y, blockWidth, blockHeight)
+            yInd = y//blockHeight
+            xInd = x//blockWidth
+            if (xInd < 64) and (yInd < 32):
+                color = WHITE if data[yInd][xInd] else BLACK
+                # print(yInd, xInd, color)
+                pygame.draw.rect(screen, color, rect, screen_width)
 
 def decrementTimer():
     # TODO Do something aobut this one
@@ -142,13 +166,8 @@ def fetch():
     A = memory[PC]
     B = memory[PC + 1]
     value = (hex(A) + ' ' + hex(B)).replace(' 0x', '')
-    # print(PC, value)
-    # nibleA, nibleB = hex(A)[2:]
-    # nibleC, nibleD = hex(B)[2:]
-    # nibles = [int(nib, 16) for nib in (hex(A)[2:] + hex(B)[2:])]
     nibles = [int(nib, 16) for nib in ("{:02x}".format(A) + "{:02x}".format(B))]
     niblesHex = [hex(nib)[-1] for nib in nibles]
-    # print(PC, nibleA, nibleB, nibleC, nibleD)
     print('\nfetch: ', PC, '0x'+''.join(niblesHex), nibles)
     print(f'\tWorking with niblesHex: {niblesHex}')
 
@@ -836,13 +855,12 @@ if __name__ == '__main__':
         if VERBOSE:
             print('Finished writing to memory')
             printMemory(start=512, limit=16)
-    else:
-        sourceFile = None
 
     # Setup pygame parts
     pygame.init()
 
-    size = screen_width, screen_height = 600, 400
+    scale = 10
+    size = screen_width, screen_height = displayWidth*scale, displayHeight*scale
     screen = pygame.display.set_mode(size)
     clock = pygame.time.Clock()
     fps_cap = 120
@@ -878,7 +896,6 @@ if __name__ == '__main__':
         # print(keyValues)
 
         # Pygame display stuff
-        screen.fill((255, 255, 255))
         pygame.display.flip()
 
         # Manage timer
@@ -887,17 +904,17 @@ if __name__ == '__main__':
         os.system('clear')
 
 
-        # General code
+        ## General code
         fetch()
         # if TIMER < 230:
         #     print('QUITTING from arbitrary timer limit')
         #     quit()
 
 
-
+        ## Example with drawing A sliding across screen
         # clearDisplay()
-        # loadReg(0, 0) # x reg is 0
-        # loadReg(1, 0) # y reg is 1
+        # # loadReg(0, 0) # x reg is 0
+        # # loadReg(1, 0) # y reg is 1
         # loadReg(0, (displayWidth-TIMER-8)%displayWidth) # x reg is 0
         # loadReg(1, (TIMER-5)%displayHeight) # y reg is 1
         # # loadReg(0, randint(0, displayWidth-1)) # x reg is 0
@@ -908,7 +925,8 @@ if __name__ == '__main__':
         # setI(fontStart+50)
         # display(0, 1, 5)
         # # printMemory(display=True)
-        # displayShow()
+
+        displayShow()
 
 
     pygame.quit()
