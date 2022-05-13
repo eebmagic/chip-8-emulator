@@ -64,7 +64,6 @@ memory[displayStart:displayEnd+2] = [0x00] * displayLength
 # FUNCTIONS 
 #############
 
-
 def printMemory(display=False, start=0, limit=4096+1, condensed=False):
     '''
     HELPER METHOD
@@ -89,9 +88,6 @@ def printMemory(display=False, start=0, limit=4096+1, condensed=False):
 def getDisplayArray():
     out = []
     for i in range(displayHeight):
-        # a = f'{hex(displayStart+(i*8))}..{hex(displayStart+((i+1)*8)*(8-1))}'
-        # b = f' ' * (12-len(a))
-        # print(f'{b}{a} : {[hex(x) for x in memory[displayStart+(i*8):displayStart+((i+1)*8)]]}')
         out += memory[displayStart+(i*8):displayStart+((i+1)*8)]
     return out
 
@@ -144,7 +140,6 @@ def displayShow():
             xInd = x//blockWidth
             if (xInd < 64) and (yInd < 32):
                 color = WHITE if data[yInd][xInd] else BLACK
-                # print(yInd, xInd, color)
                 pygame.draw.rect(screen, color, rect, screen_width)
 
 def decrementTimer():
@@ -180,7 +175,6 @@ def fetch():
         ### TODO: Finish this after writing call sub routine
         pass
     elif niblesHex[0] == '1':
-        # target = (nibleB << 8) + (nibleC << 4) + nibleD
         target = (nibles[1] << 8) + (nibles[2] << 4) + nibles[3]
         jpAddr(target)
     elif niblesHex[0] == '2':
@@ -862,12 +856,11 @@ if __name__ == '__main__':
     size = screen_width, screen_height = displayWidth*scale, displayHeight*scale
     screen = pygame.display.set_mode(size)
     clock = pygame.time.Clock()
-    fps_cap = 120
     running = True
 
     # Main loop
     while running:
-        clock.tick(fps_cap)
+        clock.tick(1/TICK_RATE)
 
         # Get keyboard inputs
         for event in pygame.event.get():    # error is here
@@ -905,10 +898,6 @@ if __name__ == '__main__':
 
         ## General code
         fetch()
-        # if TIMER < 230:
-        #     print('QUITTING from arbitrary timer limit')
-        #     quit()
-
 
         ## Example with drawing A sliding across screen
         # clearDisplay()
@@ -930,6 +919,3 @@ if __name__ == '__main__':
 
     pygame.quit()
     exit()
-
-    # game_loop()
-    #!/usr/bin/env python
