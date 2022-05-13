@@ -148,7 +148,10 @@ def displayShow():
                 pygame.draw.rect(screen, color, rect, screen_width)
 
 def decrementTimer():
-    # TODO Do something aobut this one
+    '''
+    HELPER METHOD
+    Decrement both timers and loop back
+    '''
     global TIMER, SOUND_TIMER
     if TIMER > 0:
         TIMER -= 1
@@ -161,8 +164,8 @@ def decrementTimer():
         SOUND_TIMER = (2**8) - 1
 
 def fetch():
-    # TODO Do something about this one
     global PC
+    assert PC >= 0 and PC < (2**12)-2, f'PC is {PC} but should be 0..{(2**12)-2}'
     A = memory[PC]
     B = memory[PC + 1]
     value = (hex(A) + ' ' + hex(B)).replace(' 0x', '')
@@ -249,7 +252,7 @@ def fetch():
         jumpRegZero(target)
     elif niblesHex[0] == 'c':
         vx = nibles[1]
-        target = (niblesHex[2] << 4) + nibles[3]
+        target = (nibles[2] << 4) + nibles[3]
         regRandomAND(vx, target)
     elif niblesHex[0] == 'd':
         vx = nibles[1]
@@ -582,7 +585,7 @@ def jumpRegZero(nnn):
     Bnnn - JP V0, addr
     Jump to the address nnn plus value in V0
     '''
-    assert address >= 0 and address < (2**12), f'Memory address is {address} and should be 512..4096'
+    assert nnn >= 0 and nnn < (2**12), f'Memory address is {nnn} and should be 512..4096'
     global registers, PC, VERBOSE
 
     target = (nnn + registers[0]) % (2**12)
@@ -841,15 +844,11 @@ if __name__ == '__main__':
         # Place in memory
         with open(sourceFile, 'rb', buffering=4) as file:
             sourceContent = file.read().strip()
-            evens = [byte for i, byte in enumerate(sourceContent) if i % 2 == 0 ]
-            odds = [byte for i, byte in enumerate(sourceContent) if i % 2 == 1 ]
-            # joined = list(sum(zip(odds, evens+[0]), ())[:-1])
-            joined = sourceContent
 
             if VERBOSE:
                 print(f'Loaded program from {sourceFile}')
 
-        for i, byte in enumerate(joined):
+        for i, byte in enumerate(sourceContent):
             memory[512+i] = byte
 
         if VERBOSE:
@@ -901,7 +900,7 @@ if __name__ == '__main__':
         # Manage timer
         time.sleep(TICK_RATE)
         decrementTimer()
-        os.system('clear')
+        # os.system('clear')
 
 
         ## General code
